@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SuperMarketApi.Models;
 using System;
 using System.Collections.Generic;
@@ -46,6 +48,174 @@ namespace SuperMarketApi.Controllers
             }
         }
 
+        [HttpGet("GetRole")]
+
+        public IActionResult GetRole(int companyId)
+        {
+            try
+            {
+                var roles = db.Roles.ToList();
+
+                return Ok(roles);
+            }
+            catch (Exception e)
+            {
+                var error = new
+                {
+                    error = new Exception(e.Message, e.InnerException),
+                    status = 0,
+                    msg = "Something went wrong  Contact our service provider"
+
+                };
+                return Json(error);
+            }
+        }
+
+        [HttpGet("Getuser")]
+
+        public IActionResult Get(int companyId)
+        {
+            try
+            {
+                var data = new
+                {
+                    users = db.Users.Where(x => x.CompanyId == companyId).Include(x => x.Role).ToList(),
+                    userstores = db.UserStores.Include(x => x.Store).ToList()
+                };
+
+                return Ok(data);
+            }
+            catch (Exception e)
+            {
+                var error = new
+                {
+                    error = new Exception(e.Message, e.InnerException),
+                    status = 0,
+                    msg = "Something went wrong  Contact our service provider"
+                };
+                return Json(error);
+            }
+        }
+
+          [HttpPost("Add")]
+        [EnableCors("AllowOrigin")]
+        public IActionResult Add([FromBody] JObject data)
+        {
+            User userstrs = new User();
+            try
+            { 
+                dynamic userJson = data;
+                User user = userJson.ToObject<User>();
+                if (user.Id == 0)
+                {
+                    var users = db.Users.Where(x => x.CompanyId == user.CompanyId).ToList();
+                    foreach (var usr in users)
+                    {
+                        if (user.Pin == usr.Pin)
+                        {
+                            var msg = new
+                            {
+                                status = 0,
+                                msg = "Pin Already Taken Choose Another"
+                            };
+                            return Ok(msg);
+                        }
+                    }
+                    user.AccountId = db.Accounts.Where(x => x.CompanyId == user.CompanyId).FirstOrDefault().Id;
+                    db.Users.Add(user);
+                    db.SaveChanges();
+                    userstrs = user;
+                    JArray userstoresObj = userJson.Stores;
+                    if (userstoresObj != null)
+                    {
+                        dynamic UserStoresJson = userstoresObj.ToList();
+                        foreach (var item in UserStoresJson)
+                        {
+                            int itemId = item.ToObject<int>();
+                            if (item != 0)
+                            {
+                                UserStores userstores = new UserStores();
+                                userstores.UserId = user.Id;
+                                userstores.StoreId = item;
+                                userstores.CompanyId = user.CompanyId;
+                                db.UserStores.Add(userstores);
+                                db.SaveChanges();
+                            }
+
+                        }
+                    }
+                }
+                else
+                {
+                    user.AccountId = db.Accounts.Where(x => x.CompanyId == user.CompanyId).FirstOrDefault().Id;
+                    var users1 = db.Users.Where(x => x.CompanyId == user.CompanyId && x.Id != user.Id).ToList();
+                    foreach (var usr in users1)
+                    {
+                        if (user.Pin == usr.Pin)
+                        {
+                            var msg = new
+                            {
+                                status = 0,
+                                msg = "Pin Already Taken Choose Another"
+                            };
+                            return Ok(msg);
+                        }
+                    }
+                    db.Entry(user).State = EntityState.Modified;
+                    db.SaveChanges();
+                    userstrs = user;
+                    JArray userstoresObj = userJson.stores;
+                    if (userstoresObj != null)
+                    {
+                        IEnumerable<dynamic> UserStoresJson = userstoresObj.ToList();
+                        foreach (var item in UserStoresJson)
+                        {
+                            int itemId = item.ToObject<int>();
+                            var usrStrs = db.UserStores.Where(x => x.UserId == user.Id && x.StoreId == itemId).FirstOrDefault();
+                            if (usrStrs == null)
+                            {
+                                UserStores userstores = new UserStores();
+                                userstores.StoreId = itemId;
+                                userstores.UserId = user.Id;
+                                userstores.CompanyId = user.CompanyId;
+                                db.UserStores.Add(userstores);
+                                db.SaveChanges();
+                            }
+                        }
+                        var usrStrs1 = db.UserStores.Where(x => x.UserId == user.Id).ToList();
+                        foreach (var str in usrStrs1)
+                        {
+                            var delustrs = UserStoresJson.Where(x => x == str.StoreId).FirstOrDefault();
+                            if (delustrs == null)
+                            {
+                                var delUserStrs = db.UserStores.Find(str.Id);
+                                db.UserStores.Remove(delUserStrs);
+                                db.SaveChanges();
+                            }
+                        }
+                    }
+
+                }
+                var mesg = new
+                {
+                    status = 200,
+                    msg = "User Successfully Added or Updated",
+                    user = userstrs
+                };
+
+                return Ok(mesg);
+            }
+            catch (Exception e)
+            {
+                var error = new
+                {
+                    error = new Exception(e.Message, e.InnerException),
+                    status = 0,
+                    msg = "Something went wrong  Contact our service provider"
+                };
+                return Json(error);
+            }
+        }
         // GET: UsersController
         public ActionResult Index()
         {

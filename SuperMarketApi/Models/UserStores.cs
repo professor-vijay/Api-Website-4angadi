@@ -18,5 +18,9 @@ namespace SuperMarketApi.Models
         [ForeignKey("Store")]
         public int StoreId { get; set; }
         public virtual Store Store { get; set; }
+
+        [ForeignKey("Company")]
+        public int? CompanyId { get; set; }
+        public virtual Company Company { get; set; }
     }
 }

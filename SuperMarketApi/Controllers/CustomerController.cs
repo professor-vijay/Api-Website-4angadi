@@ -175,7 +175,7 @@ namespace SuperMarketApi.Controllers
 
         // Delete: Customer Details
         [HttpDelete("deleteData")]
-        public IActionResult IndexDelete(int Id)
+        public IActionResult IndexDelete(int Id) 
         {
             db.Customers.Remove(db.Customers.Find(Id));
             db.SaveChanges();
@@ -185,6 +185,69 @@ namespace SuperMarketApi.Controllers
                 message = "Value Deleted Successfull!"
             };
             return Ok(responce);
+        }
+
+        [HttpGet("Index")]
+        [EnableCors("AllowOrigin")]
+        public IActionResult Index(int companyId)
+        {
+            try
+            {
+                var prod = new
+                {
+                    company = db.Companies.Where(c => c.Id == companyId).FirstOrDefault(),
+                    accounts = db.Accounts.Where(a => a.CompanyId == companyId).FirstOrDefault(),
+                    user = db.Users.Where(u => u.CompanyId == companyId).FirstOrDefault()
+                };
+                return Json(prod);
+            }
+            catch (Exception ex)
+            {
+                var error = new
+                {
+                    status = 0,
+                    msg = ex.Message
+                };
+                return Json(error);
+            }
+        }
+
+               [HttpPost("SaveData")]
+        [EnableCors("AllowOrigin")]
+        public IActionResult SaveData([FromForm]string objData)
+        {
+            try
+            {
+                dynamic comp = JsonConvert.DeserializeObject(objData);
+                Company company = comp.company.ToObject<Company>();
+                db.Entry(company).State = EntityState.Modified;
+                db.SaveChanges();
+                Accounts accounts = comp.accounts.ToObject<Accounts>();
+                accounts.CompanyId = company.Id;
+                db.Entry(accounts).State = EntityState.Modified;
+                db.SaveChanges();
+                User user = comp.user.ToObject<User>();
+                user.CompanyId = company.Id;
+                db.Entry(user).State = EntityState.Modified;
+                db.SaveChanges();
+                var error = new
+                {
+                    status = 200,
+                    msg = "The data added successfully"
+                };
+
+                return Json(error);
+            }
+            catch (Exception e)
+            {
+                var error = new
+                {
+                    error = new Exception(e.Message, e.InnerException),
+                    status = 0,
+                    msg = "Something went wrong  Contact our service provider"
+                };
+                return Json(error);
+            }
         }
 
     }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using SuperMarketApi.Models;
 using System;
 using System.Collections.Generic;
@@ -24,21 +25,21 @@ namespace SuperMarketApi.Controllers
             Configuration = configuration;
         }
 
-        [HttpGet("GetRpt")]
-        public IActionResult GetRpt(DateTime fromdate, DateTime todate, int storeId)
+        [HttpGet("GetDaywiseRpt")]
+        public IActionResult GetDaywiseRpt(DateTime fromdate, DateTime todate, int storeId, int companyId, int sourceId)
         {
             try
             {
                 //SqlConnection sqlCon = new SqlConnection("server=(LocalDb)\\MSSQLLocalDB; database=Biz1POS;Trusted_Connection=True;");
                 SqlConnection sqlCon = new SqlConnection(Configuration.GetConnectionString("myconn"));
                 sqlCon.Open();
-                SqlCommand cmd = new SqlCommand("dbo.DayWise", sqlCon);
+                SqlCommand cmd = new SqlCommand("dbo.Daywisesales", sqlCon);
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter("@fromDate", fromdate));
                 cmd.Parameters.Add(new SqlParameter("@toDate", todate));
                 cmd.Parameters.Add(new SqlParameter("@storeId", storeId));
-                //cmd.Parameters.Add(new SqlParameter("@companyId", companyId));
-                //cmd.Parameters.Add(new SqlParameter("@sourceId", sourceId));
+                cmd.Parameters.Add(new SqlParameter("@companyId", companyId));
+                cmd.Parameters.Add(new SqlParameter("@sourceId", sourceId));
                 DataSet ds = new DataSet();
                 SqlDataAdapter sqlAdp = new SqlDataAdapter(cmd);
                 sqlAdp.Fill(ds);
@@ -170,6 +171,88 @@ namespace SuperMarketApi.Controllers
                 {
                     transactions = ds.Tables[0],
                     paymenttypes = db.StorePaymentTypes.Where(x => x.StoreId == storeid).ToList()
+                };
+                sqlCon.Close();
+                return Ok(data);
+            }
+            catch (Exception e)
+            {
+                var error = new
+                {
+                    error = new Exception(e.Message, e.InnerException),
+                    status = 0,
+                    msg = "Something went wrong  Contact our service provider"
+                };
+                return Json(error);
+            }
+        }
+
+        [HttpGet("GetMonthWise")]
+        public IActionResult GetMonthWise(DateTime fromdate, DateTime todate, int companyId, int storeId)
+        {
+            try
+            {
+                //SqlConnection sqlCon = new SqlConnection("server=(LocalDb)\\MSSQLLocalDB; database=Biz1POS;Trusted_Connection=True;");
+                SqlConnection sqlCon = new SqlConnection(Configuration.GetConnectionString("myconn"));
+                sqlCon.Open();
+                SqlCommand cmd = new SqlCommand("dbo.MonthWiseSale", sqlCon);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter("@fromdate", fromdate));
+                cmd.Parameters.Add(new SqlParameter("@todate", todate));
+                cmd.Parameters.Add(new SqlParameter("@storeId", storeId));
+                cmd.Parameters.Add(new SqlParameter("@companyId", companyId));             
+                
+
+                DataSet ds = new DataSet();
+                SqlDataAdapter sqlAdp = new SqlDataAdapter(cmd);
+                sqlAdp.Fill(ds);
+                DataTable table = ds.Tables[0];
+
+                var data = new
+                {
+                    Order = ds.Tables[0],
+
+                };
+                sqlCon.Close();
+                return Ok(data);
+            }
+            catch (Exception e)
+            {
+                var error = new
+                {
+                    error = new Exception(e.Message, e.InnerException),
+                    status = 0,
+                    msg = "Something went wrong  Contact our service provider"
+                };
+                return Json(error);
+            }
+        }
+
+        [HttpGet("GetProductWise")]
+        public IActionResult GetProductWise(DateTime fromdate, DateTime todate, int companyId, int storeId)
+        {
+            try
+            {
+                //SqlConnection sqlCon = new SqlConnection("server=(LocalDb)\\MSSQLLocalDB; database=Biz1POS;Trusted_Connection=True;");
+                SqlConnection sqlCon = new SqlConnection(Configuration.GetConnectionString("myconn"));
+                sqlCon.Open();
+                SqlCommand cmd = new SqlCommand("dbo.ProductWiseSales", sqlCon);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter("@fromdate", fromdate));
+                cmd.Parameters.Add(new SqlParameter("@todate", todate));
+                cmd.Parameters.Add(new SqlParameter("@storeId", storeId));
+                cmd.Parameters.Add(new SqlParameter("@companyId", companyId));
+
+
+                DataSet ds = new DataSet();
+                SqlDataAdapter sqlAdp = new SqlDataAdapter(cmd);
+                sqlAdp.Fill(ds);
+                DataTable table = ds.Tables[0];
+
+                var data = new
+                {
+                    Order = ds.Tables[0],
+
                 };
                 sqlCon.Close();
                 return Ok(data);

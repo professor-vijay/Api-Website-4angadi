@@ -29,9 +29,15 @@ namespace SuperMarketApi.Controllers
         {
             try
             {
+                var users = db.Users.Where(x => x.CompanyId == companyid).Include(x => x.Role).ToList();
+                foreach(var user in users)
+                {
+                    user.mapped_stores = db.UserStores.Where(x => x.UserId == user.Id).Select(x => x.StoreId).ToList();
+                    user.mapped_stores_name = db.UserStores.Where(x => x.UserId == user.Id).Select(x => x.Store.Name).ToList();
+                }
                 var usersdata = new
                 {
-                    users = db.Users.Where(x => x.CompanyId == companyid).Include(x => x.Role).ToList()
+                    users = users
                 };
 
                 return Ok(usersdata);
@@ -129,14 +135,13 @@ namespace SuperMarketApi.Controllers
                     if (userstoresObj != null)
                     {
                         dynamic UserStoresJson = userstoresObj.ToList();
-                        foreach (var item in UserStoresJson)
+                        foreach (int storeid in user.mapped_stores)
                         {
-                            int itemId = item.ToObject<int>();
-                            if (item != 0)
+                            if (storeid != 0)
                             {
                                 UserStores userstores = new UserStores();
                                 userstores.UserId = user.Id;
-                                userstores.StoreId = item;
+                                userstores.StoreId = storeid;
                                 userstores.CompanyId = user.CompanyId;
                                 db.UserStores.Add(userstores);
                                 db.SaveChanges();
@@ -215,6 +220,45 @@ namespace SuperMarketApi.Controllers
                 };
                 return Json(error);
             }
+        }
+
+        [HttpGet("Deleteuser")]
+        [EnableCors("AllowOrigin")]
+        public IActionResult Deleteuser(int Id)
+        {
+            try
+            {
+                var userstores = db.UserStores.Where(x => x.UserId == Id).ToList();
+                // var userroles = db.UserRoles.Where(x => x.Id ==  && x.CompanyId == 1).t
+                if (userstores != null)
+                {
+                    foreach (var item in userstores)
+                    {
+                        var ustore = db.UserStores.Find(item.Id);
+                        db.UserStores.Remove(ustore);
+                    }
+                }
+                var user = db.Users.Find(Id);
+                db.Users.Remove(user);
+                db.SaveChanges();
+                var error = new
+                {
+                    status = 200,
+                    msg = "Delete Successfully"
+                };
+                return Json(error);
+            }
+            catch (Exception e)
+            {
+                var error = new
+                {
+                    error = new Exception(e.Message, e.InnerException),
+                    status = 0,
+                    msg = "Something went wrong  Contact our service provider"
+                };
+                return Json(error);
+            }
+
         }
         // GET: UsersController
         public ActionResult Index()

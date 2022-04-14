@@ -25,5 +25,11 @@ namespace SuperMarketApi.Models
         public int RoleId { get; set; }
         public virtual Role Role { get; set; }
 
+        [NotMapped]
+        public List<int> mapped_stores { get; set; }
+
+        [NotMapped]
+        public List<string> mapped_stores_name { get; set; }
+
     }
 }

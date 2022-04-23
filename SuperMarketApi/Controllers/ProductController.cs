@@ -159,6 +159,7 @@ namespace SuperMarketApi.Controllers
                 cmd.Parameters.Add(new SqlParameter("@userid", userid));
                 // cmd.Parameters.Add(new SqlParameter("@storeId", sid.StoreId));
 
+
                 DataSet ds = new DataSet();
                 SqlDataAdapter sqlAdp = new SqlDataAdapter(cmd);
                 sqlAdp.Fill(ds);

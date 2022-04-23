@@ -159,5 +159,131 @@ namespace SuperMarketApi.Controllers
                 return Ok(response);
             }
         }
+
+        //[HttpGet("GetAddtional")]
+        //public IActionResult GetAddtional(int CompanyId)
+        //{
+        //    var additionalCharges = db.AdditionalCharges.Where(x => x.CompanyId == CompanyId).ToList();
+        //    return Ok(additionalCharges);
+        //}
+        [HttpGet("GetAddtional")]
+        [EnableCors("AllowOrigin")]
+        public IActionResult GetAddtional(int CompanyId)
+        {
+            try
+            {
+                var prod = new
+                {
+                    taxGroup = db.TaxGroups.Where(o => o.CompanyId == CompanyId).ToList(),
+                    addtncharges = db.AdditionalCharges.Where(o => o.CompanyId == CompanyId).ToList(),
+                };
+                return Json(prod);
+            }
+            catch (Exception e)
+            {
+                var error = new
+                {
+                    error = new Exception(e.Message, e.InnerException),
+                    status = 0,
+                    msg = "Something went wrong  Contact our service provider"
+                };
+                return Json(error);
+            }
+        }
+
+        [HttpPost("Addadditional")]
+        public IActionResult Addadditional([FromBody] dynamic additionalchargesobj)
+        {
+            try
+            {
+                AdditionalCharges additionalcharges = additionalchargesobj.ToObject<AdditionalCharges>();
+                db.AdditionalCharges.Add(additionalcharges);
+                db.SaveChanges();
+                var response = new
+                {
+                    status = 200,
+                    msg = "Additional charge added successfully",
+                    additionalcharges = additionalcharges
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                var response = new
+                {
+                    status = 0,
+                    msg = "OOPS! Something went wrong",
+                    error = new Exception(ex.Message, ex.InnerException)
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpPost("Updateadditional")]
+        public IActionResult Updateadditional([FromBody] dynamic additionalobj)
+        {
+            try
+            {
+                AdditionalCharges additionalcharges = additionalobj.ToObject<AdditionalCharges>();
+                db.Entry(additionalcharges).State = EntityState.Modified;
+                db.SaveChanges();
+                var response = new
+                {
+                    status = 200,
+                    msg = "Additional updated successfully",
+                    taxgroup = additionalcharges
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                var response = new
+                {
+                    status = 0,
+                    msg = "OOPS! Something went wrong",
+                    error = new Exception(ex.Message, ex.InnerException)
+                };
+                return Ok(response);
+            }
+        }
+
+        //[HttpPost("Updateadditional")]
+        //public IActionResult Updateadditional([FromBody] JObject data)
+        //{
+        //    try
+        //    {
+        //        dynamic Addchrgs = data;
+        //        AdditionalCharges additionalCharges = Addchrgs.ToObject<AdditionalCharges>();
+        //        additionalCharges.CreatedDate = db.AdditionalCharges.Where(x => x.Id == additionalCharges.Id).AsNoTracking().FirstOrDefault().CreatedDate;
+        //        additionalCharges.ModifiedDate = DateTime.Now;
+        //        db.Entry(additionalCharges).State = EntityState.Modified;
+        //        db.SaveChanges();
+        //        var error = new
+        //        {
+        //            status = "success",
+        //            data = new
+        //            {
+        //                value = 2
+        //            },
+        //            msg = "The AdditionalCharges updated successfully"
+        //        };
+
+        //        return Json(error);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        var error = new
+        //        {
+        //            error = new Exception(e.Message, e.InnerException),
+        //            status = 0,
+        //            msg = "Something went wrong  Contact our service provider"
+        //        };
+        //        return Json(error);
+        //    }
+
+
+        //}
+
+
     }
 }

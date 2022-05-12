@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using SuperMarketApi.Models;
 using System;
 using System.Collections.Generic;
@@ -80,6 +82,61 @@ namespace SuperMarketApi.Controllers
                 {
                     status = 500,
                     error = new Exception(e.Message, e.InnerException)
+                };
+                return Json(error);
+            }
+        }
+
+        [HttpPost("Pay")]
+        public IActionResult Pay([FromBody] dynamic data)
+        {
+            try
+            {
+                dynamic orderJson = data;
+
+                Transaction transaction = data.value.ToObject<Transaction>();
+                //transaction.PaymentTypeId = 1;
+                transaction.TransDateTime = DateTime.Now;
+                transaction.TransDate = DateTime.Now;
+                transaction.TranstypeId = 1;
+                if (transaction.Amount < 0)
+                {
+                    transaction.TranstypeId = 2;
+                }
+                db.Transactions.Add(transaction);
+                db.SaveChanges();
+
+                var order = db.Orders.Find(transaction.OrderId);
+                if (order.PaidAmount * -1 == transaction.Amount)
+                {
+                    order.OrderStatusId = -1;
+                    dynamic jsn = JsonConvert.DeserializeObject(order.OrderJson);
+                    jsn.OrderStatusId = -1;
+                    order.OrderJson = JsonConvert.SerializeObject(jsn);
+                    order.RefundAmount = transaction.Amount * -1;
+                    transaction.Amount = transaction.Amount * -1;
+                }
+                if (order.OrderStatusId != -1)
+                {
+                    order.PaidAmount = order.PaidAmount + transaction.Amount;
+                }
+                db.Entry(order).State = EntityState.Modified;
+                db.SaveChanges();
+                var error = new
+                {
+                    status = 200,
+                    msg = "Payment done"
+                };
+                return Json(error);
+
+            }
+            catch (Exception e)
+            {
+                var error = new
+                {
+                    error = new Exception(e.Message, e.InnerException),
+                    status = 0,
+                    msg = "Something went wrong  Contact our service provider"
                 };
                 return Json(error);
             }

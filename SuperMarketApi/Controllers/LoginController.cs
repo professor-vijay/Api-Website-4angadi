@@ -283,7 +283,9 @@ namespace SuperMarketApi.Controllers
                     BarcodeProduct = ds.Tables[8],
                     Preference = ds.Tables[9],
                     orderkey = ds.Tables[10],
-                    AdditionalCharges = ds.Tables[11]
+                    AdditionalCharges = ds.Tables[11],
+                    paymenttypes = ds.Tables[12],
+                    storapaymenttypes = ds.Tables[13]
 
 
                 };

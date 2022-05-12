@@ -483,7 +483,7 @@ namespace SuperMarketApi.Controllers
         }
 
         [HttpGet("getUnits")]
-        public IActionResult getUnits(int CompanyId)
+        public IActionResult getUnits()
         {
             var units = db.Units.ToList();
 
@@ -945,7 +945,7 @@ namespace SuperMarketApi.Controllers
                 foreach (StockBatch stockbatch in stockBatches)
                 {
                     sqlCon.Open();
-                    SqlCommand cmd = new SqlCommand("dbo.StockBatches", sqlCon);
+                    SqlCommand cmd = new SqlCommand("dbo.StockEntry", sqlCon);
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Add(new SqlParameter("@companyid", stockbatch.CompanyId));
                     cmd.Parameters.Add(new SqlParameter("@stockid", stockbatch.StockId));
@@ -953,7 +953,7 @@ namespace SuperMarketApi.Controllers
                     cmd.Parameters.Add(new SqlParameter("@quantity", stockbatch.Quantity));
                     cmd.Parameters.Add(new SqlParameter("@createddate", stockbatch.CreatedDate));
                     cmd.Parameters.Add(new SqlParameter("@createdby", stockbatch.CreatedBy));
-                    cmd.Parameters.Add(new SqlParameter("@storeId", stockbatch.StockBatchId));
+                    
 
                     DataSet ds = new DataSet();
                     SqlDataAdapter sqlAdp = new SqlDataAdapter(cmd);
@@ -1207,6 +1207,111 @@ namespace SuperMarketApi.Controllers
                 return Ok(response);
             }
         }
+
+        //[HttpGet("getstockbatch")]
+        //public IActionResult getstockbatch(int companyid)
+        //{
+        //    List<StockBatch> stockbatches = db.StockBatches.Where(x => x.CompanyId == companyid).ToList();
+        //    return Ok(stockbatches);
+        //}
+
+        [HttpGet("getstockbatch")]
+        public IActionResult getstockbatch(DateTime fromdate, DateTime todate, int companyId, int storeId)
+        {
+            try
+            {
+                //SqlConnection sqlCon = new SqlConnection("server=(LocalDb)\\MSSQLLocalDB; database=Biz1POS;Trusted_Connection=True;");
+                SqlConnection sqlCon = new SqlConnection(Configuration.GetConnectionString("myconn"));
+                sqlCon.Open();
+                SqlCommand cmd = new SqlCommand("dbo.stockedit", sqlCon);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter("@fromdate", fromdate));
+                cmd.Parameters.Add(new SqlParameter("@todate", todate));
+                cmd.Parameters.Add(new SqlParameter("@storeId", storeId));
+                cmd.Parameters.Add(new SqlParameter("@companyId", companyId));
+
+
+                DataSet ds = new DataSet();
+                SqlDataAdapter sqlAdp = new SqlDataAdapter(cmd);
+                sqlAdp.Fill(ds);
+                DataTable table = ds.Tables[0];
+
+                sqlCon.Close();
+                return Ok(table);
+            }
+            catch (Exception e)
+            {
+                var error = new
+                {
+                    error = new Exception(e.Message, e.InnerException),
+                    status = 0,
+                    msg = "Something went wrong  Contact our service provider"
+                };
+                return Json(error);
+            }
+        }
+
+        [HttpPost("Updatestockbatch")]
+        public IActionResult Updatestockbatch([FromBody] dynamic stockbatchobj)
+        {
+            try
+            {
+                StockBatch stockbatches = stockbatchobj.ToObject<StockBatch>();
+                db.Entry(stockbatches).State = EntityState.Modified;
+                db.SaveChanges();
+                var response = new
+                {
+                    status = 200,
+                    msg = "Additional updated successfully",
+                    stockbatches = stockbatches
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                var response = new
+                {
+                    status = 0,
+                    msg = "OOPS! Something went wrong",
+                    error = new Exception(ex.Message, ex.InnerException)
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpPost("Addunits")]
+        public IActionResult Addunits([FromBody] dynamic unitsobj)
+        {
+            try
+            {
+                Unit units = unitsobj.ToObject<Unit>();
+                db.Units.Add(units);
+                db.SaveChanges();
+                var response = new
+                {
+                    status = 200,
+                    msg = "Units  added successfully",
+                    units = units
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                var response = new
+                {
+                    status = 0,
+                    msg = "OOPS! Something went wrong",
+                    error = new Exception(ex.Message, ex.InnerException)
+                };
+                return Ok(response);
+            }
+        }
+
+
+
+
+
+
         //[HttpGet("getstockbatchproducts")]
         //public IActionResult getstoreproduct(int CompanyId,int StoreId)
         //{

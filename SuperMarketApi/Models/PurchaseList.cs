@@ -27,5 +27,14 @@ namespace SuperMarketApi.Models
         public int? StoreId { get; set; }
         public virtual Store Store { get; set; }
 
+        public string Delivery { get; set; }
+        public string Warranty { get; set; }
+
+        [ForeignKey("Unit")]
+        public int? UnitId { get; set; }
+        public virtual Unit Unit { get; set; }
+
+
+
     }
 }

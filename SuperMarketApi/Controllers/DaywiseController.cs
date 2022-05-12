@@ -128,7 +128,7 @@ namespace SuperMarketApi.Controllers
                 DataTable table = ds.Tables[0];
                 var data = new
                 {
-                    pos_transactions = ds.Tables[0],
+                    transactions = ds.Tables[0],
                    
                 };
                 sqlCon.Close();
@@ -277,7 +277,7 @@ namespace SuperMarketApi.Controllers
                 //SqlConnection sqlCon = new SqlConnection("server=(LocalDb)\\MSSQLLocalDB; database=Biz1POS;Trusted_Connection=True;");
                 SqlConnection sqlCon = new SqlConnection(Configuration.GetConnectionString("myconn"));
                 sqlCon.Open();
-                SqlCommand cmd = new SqlCommand("dbo.Wastages", sqlCon);
+                SqlCommand cmd = new SqlCommand("dbo.WastagesSP", sqlCon);
                 cmd.CommandType = CommandType.StoredProcedure;
             
                 cmd.Parameters.Add(new SqlParameter("@companyId", Companyid));

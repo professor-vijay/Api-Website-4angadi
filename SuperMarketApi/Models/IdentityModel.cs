@@ -126,5 +126,7 @@ namespace SuperMarketApi.Models
         public DbSet<NeedProducts> NeedProducts { get; set; }
         public DbSet<PurchaseList> PurchaseLists { get; set; }
 
+        public DbSet<Wastage> Wastages { get; set; }
+
     }
 }

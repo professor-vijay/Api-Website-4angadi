@@ -160,12 +160,7 @@ namespace SuperMarketApi.Controllers
             }
         }
 
-        //[HttpGet("GetAddtional")]
-        //public IActionResult GetAddtional(int CompanyId)
-        //{
-        //    var additionalCharges = db.AdditionalCharges.Where(x => x.CompanyId == CompanyId).ToList();
-        //    return Ok(additionalCharges);
-        //}
+       
         [HttpGet("GetAddtional")]
         [EnableCors("AllowOrigin")]
         public IActionResult GetAddtional(int CompanyId)

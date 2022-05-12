@@ -238,7 +238,7 @@ namespace SuperMarketApi.Controllers
                     myconnn.Open();
                     try
                     {
-                        SqlCommand ordersp = new SqlCommand("dbo.SaveOrder", myconnn);
+                        SqlCommand ordersp = new SqlCommand("dbo.SaveOrderTest", myconnn);
                         ordersp.CommandType = CommandType.StoredProcedure;
                         ordersp.Parameters.Add(new SqlParameter("@orderjson", payload.OrderJson));
                         DataSet ds = new DataSet();

@@ -74,12 +74,12 @@ namespace SuperMarketApi.Controllers
       if (trans.IsIncoming == true)
       {
         bill.ReceiverId = trans.StoreId;
-        bill.ProviderId = trans.ContactId;
+        bill.ProviderId = (int)trans.ContactId;
       }
       else
       {
         bill.ProviderId = trans.StoreId;
-        bill.ReceiverId = trans.ContactId;
+        bill.ReceiverId = (int)trans.ContactId;
       }
       bill.BillAmount = trans.Amount;
       bill.BillType = billType;
@@ -197,12 +197,12 @@ namespace SuperMarketApi.Controllers
       if (transFromDB.IsIncoming == true)
       {
         bill.ReceiverId = trans.StoreId;
-        bill.ProviderId = trans.ContactId;
+        bill.ProviderId = (int)trans.ContactId;
       }
       else
       {
         bill.ProviderId = trans.StoreId;
-        bill.ReceiverId = trans.ContactId;
+        bill.ReceiverId = (int)trans.ContactId;
       }
 
       bill.BillAmount = trans.Amount;

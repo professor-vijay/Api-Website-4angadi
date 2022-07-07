@@ -52,20 +52,20 @@ namespace SuperMarketApi.Models
         public int StoreId { get; set; }
         public virtual Store Store { get; set; }
 
-        public int CreatedBy { get; set; }
+        public int? CreatedBy { get; set; }
         public string Notes { get; set; }
         public string Description { get; set; }
 
-        public int TransModeId { get; set; }
+        public int? TransModeId { get; set; }
 
-        public bool IsIncoming { get; set; }
+        public bool? IsIncoming { get; set; }
         [DataType(DataType.Date)]
-        public DateTime CreatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
         [NotMapped]
         public string ChequeNo { get; set; }
         [NotMapped]
         [DataType(DataType.Date)]
-        public System.DateTime ChequeDate { get; set; }
+        public System.DateTime? ChequeDate { get; set; }
 
         [ForeignKey("BankAccount")]
         public int? BankAccountId { get; set; }
@@ -78,7 +78,7 @@ namespace SuperMarketApi.Models
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public System.DateTime? DueDate { get; set; }
-    public bool IsReturn { get; set; }
+    public bool? IsReturn { get; set; }
     [NotMapped]
     [DataType(DataType.Date)]
     public string TransDateStr

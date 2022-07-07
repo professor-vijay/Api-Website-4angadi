@@ -318,18 +318,32 @@ namespace SuperMarketApi.Controllers
             }
 
         }
-        [HttpGet("GetById")]
-        public IActionResult GetById(int id, int compId)
+
+        [EnableCors("AllowOrigin")]
+        [HttpGet("GetByIdfb")]
+        public IActionResult GetByIdfb(int id, int compId)
         {
             try
             {
                 var prod = new
                 {
-                    products = db.Products.Where(x => x.CompanyId == compId).Include(i => i.Category).ToList(),
+                    products = db.Products.Where(x => x.CompanyId == compId).ToList(),
                     product = from p in db.Products
                               where p.Id == id && p.CompanyId == compId
                               select new { p.Id, Product = p.Name, p.Description, p.Price, p.TakeawayPrice, p.DeliveryPrice, p.CategoryId, p.TaxGroupId, p.CompanyId, p.UnitId, p.ProductTypeId, p.KOTGroupId, p.ImgUrl, p.ProductCode, p.UPPrice, p.Recomended, p.SortOrder, p.isactive, p.minquantity, p.minblock },
-
+                    productOptionGroups = from pog in db.ProductOptionGroups
+                                          join og in db.OptionGroups on pog.OptionGroupId equals og.Id
+                                          where pog.ProductId == id && pog.CompanyId == compId
+                                          select new { pog.Id, pog.OptionGroupId, pog.ProductId, og.Name },
+                    optionGroups = db.OptionGroups.Where(x => x.CompanyId == compId).ToList(),
+                    category = db.Categories.Where(o => o.CompanyId == compId).ToList(),
+                    categoryOptionGroups = db.CategoryOptionGroups.Where(x => x.CompanyId == compId).ToList(),
+                    taxGroup = db.TaxGroups.Where(o => o.CompanyId == compId).ToList(),
+                    units = db.Units.ToList(),
+                    productType = db.ProductTypes.ToList(),
+                    Kot = db.KOTGroups.Where(k => k.CompanyId == compId).ToList(),
+                    //PredefinedQuantities = db.PredefinedQuantities.Where(x => x.ProductId == id).ToList(),
+                    //CakeQuantities = db.CakeQuantities.ToList()
                 };
                 return Json(prod);
             }
@@ -344,6 +358,101 @@ namespace SuperMarketApi.Controllers
                 return Json(error);
             }
         }
+
+        [HttpGet("GetById")]
+        public IActionResult GetById(int companyId)
+        {
+            try
+            {
+                //SqlConnection sqlCon = new SqlConnection("server=(LocalDb)\\MSSQLLocalDB; database=Biz1POS;Trusted_Connection=True;");
+                SqlConnection sqlCon = new SqlConnection(Configuration.GetConnectionString("myconn"));
+                sqlCon.Open();
+                SqlCommand cmd = new SqlCommand("dbo.getproductbyid", sqlCon);
+                cmd.CommandType = CommandType.StoredProcedure;            
+                cmd.Parameters.Add(new SqlParameter("@CompanyId", companyId));               
+                DataSet ds = new DataSet();
+                SqlDataAdapter sqlAdp = new SqlDataAdapter(cmd);
+                sqlAdp.Fill(ds);
+                DataTable table = ds.Tables[0];
+               
+                return Ok(table);
+            }
+            catch (Exception e)
+            {
+                var error = new
+                {
+                    error = new Exception(e.Message, e.InnerException),
+                    status = 0,
+                    msg = "Something went wrong  Contact our service provider"
+                };
+                return Json(error);
+            }
+
+        }
+
+
+        //[HttpGet("GetById")]
+        //public IActionResult GetById(int id, int compId, DateTime? fromdate, DateTime? todate)
+        //{
+        //    try
+        //    {
+        //        var prod = new
+        //        {
+        //            products = db.Products.Where(x => x.CompanyId == compId &&(x.CreatedDate >= fromdate || fromdate == null) && (x.CreatedDate <= todate || todate == null)).Include(i => i.Category).ToList(),
+        //            //product = from p in db.Products
+        //                      //where p.Id == id && p.CompanyId == compId && p.CreatedDate == fromdate && p.CreatedDate == todate
+        //                      //select new { p.Id, Product = p.Name, p.Description, p.Price, p.TakeawayPrice, p.DeliveryPrice, p.CategoryId, p.TaxGroupId, p.CompanyId, p.UnitId, p.ProductTypeId, p.KOTGroupId, p.ImgUrl, p.ProductCode, p.UPPrice, p.Recomended, p.SortOrder, p.isactive, p.minquantity, p.minblock,p.CreatedDate },
+
+        //        };
+        //        return Json(prod);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        var error = new
+        //        {
+        //            error = new Exception(e.Message, e.InnerException),
+        //            status = 0,
+        //            msg = "Something went wrong  Contact our service provider"
+        //        };
+        //        return Json(error);
+        //    }
+        //}
+
+        //[HttpGet("GetById")]
+        //public IActionResult GetById(DateTime fromdate, DateTime todate, int companyId, int storeId)
+        //{
+        //    try
+        //    {
+        //        //SqlConnection sqlCon = new SqlConnection("server=(LocalDb)\\MSSQLLocalDB; database=Biz1POS;Trusted_Connection=True;");
+        //        SqlConnection sqlCon = new SqlConnection(Configuration.GetConnectionString("myconn"));
+        //        sqlCon.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.getproduct", sqlCon);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@fromdate", fromdate));
+        //        cmd.Parameters.Add(new SqlParameter("@todate", todate));
+        //        cmd.Parameters.Add(new SqlParameter("@storeId", storeId));
+        //        cmd.Parameters.Add(new SqlParameter("@companyId", companyId));
+
+
+        //        DataSet ds = new DataSet();
+        //        SqlDataAdapter sqlAdp = new SqlDataAdapter(cmd);
+        //        sqlAdp.Fill(ds);
+        //        DataTable table = ds.Tables[0];
+
+        //        sqlCon.Close();
+        //        return Ok(table);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        var error = new
+        //        {
+        //            error = new Exception(e.Message, e.InnerException),
+        //            status = 0,
+        //            msg = "Something went wrong  Contact our service provider"
+        //        };
+        //        return Json(error);
+        //    }
+        //}
 
         [HttpGet("UpdateAct")]
         public IActionResult UpdateAct(int Id, bool active)
@@ -1216,11 +1325,10 @@ namespace SuperMarketApi.Controllers
         //}
 
         [HttpGet("getstockbatch")]
-        public IActionResult getstockbatch(DateTime fromdate, DateTime todate, int companyId, int storeId)
+        public IActionResult getstockbatch(DateTime? fromdate, DateTime? todate, int companyId, int storeId)
         {
             try
             {
-                //SqlConnection sqlCon = new SqlConnection("server=(LocalDb)\\MSSQLLocalDB; database=Biz1POS;Trusted_Connection=True;");
                 SqlConnection sqlCon = new SqlConnection(Configuration.GetConnectionString("myconn"));
                 sqlCon.Open();
                 SqlCommand cmd = new SqlCommand("dbo.stockedit", sqlCon);
@@ -1256,13 +1364,16 @@ namespace SuperMarketApi.Controllers
         {
             try
             {
-                StockBatch stockbatches = stockbatchobj.ToObject<StockBatch>();
-                db.Entry(stockbatches).State = EntityState.Modified;
+                List<StockBatch> stockbatches = stockbatchobj.ToObject<List<StockBatch>>();
+                foreach (StockBatch stockBatch in stockbatches)
+                {
+                    db.Entry(stockBatch).State = EntityState.Modified;
+                }
                 db.SaveChanges();
                 var response = new
                 {
                     status = 200,
-                    msg = "Additional updated successfully",
+                    msg = "stock updated successfully",
                     stockbatches = stockbatches
                 };
                 return Ok(response);
@@ -1277,6 +1388,40 @@ namespace SuperMarketApi.Controllers
                 };
                 return Ok(response);
             }
+        }
+
+        //[HttpPost("Updatestockbatch")]
+        //public IActionResult Updatestockbatch([FromBody] StockBatch stockBatch)
+        // {
+        //    try
+        //    {
+        //        db.Entry(stockBatch).State = EntityState.Modified;
+        //        db.SaveChanges();
+        //        var response = new
+        //        {
+        //            stockBatch = stockBatch,
+        //            status = 200,
+        //            msg = "stockbatch updated successfully"
+        //        };
+        //        return Ok(response);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var response = new
+        //        {
+        //            status = 0,
+        //            msg = "Something went wrong",
+        //            error = new Exception(ex.Message, ex.InnerException)
+        //        };
+        //        return Ok(response);
+        //    }
+        //}
+
+        [HttpGet("stockbatchget")]
+        public IActionResult stockbatchget(int companyid)
+        {
+            List<StockBatch> stockbatch = db.StockBatches.Where(x => x.CompanyId == companyid).ToList();
+            return Ok(stockbatch);
         }
 
         [HttpPost("Addunits")]

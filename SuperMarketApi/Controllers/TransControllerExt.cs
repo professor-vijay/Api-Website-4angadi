@@ -47,12 +47,12 @@ namespace SuperMarketApi.Controllers
       {
         // trans.ChequeDate = FormatExt.GetDateTimeSave(Convert.ToString(trans.ChequeDateStr), null);
         Cheque cheque = new Cheque(trans.ChequeNo,
-            trans.Amount, trans.ChequeDate, trans.TransactionId);
+            trans.Amount, (DateTime)trans.ChequeDate, trans.TransactionId);
         cheque.Status = (int)ChequeStatusEnum.Issued;
         cheque.CompanyId = trans.CompanyId;
         db.Cheques.Add(cheque);
       }
-      else if (IsBankTrans(trans.TransModeId))
+      else if (IsBankTrans((int)trans.TransModeId))
       {
         BankAccount account = db.BankAccounts.Find(trans.BankAccountId);
         if (isIncoming == true)
@@ -130,8 +130,8 @@ namespace SuperMarketApi.Controllers
     {
       bool isNegBankBalance = false;
       Transaction transFromDB = db.Transactions.Find(trans.TransactionId);
-      int transModeOld = transFromDB.TransModeId;
-      int transModeNew = trans.TransModeId;
+      int transModeOld = (int)transFromDB.TransModeId;
+      int transModeNew = (int)trans.TransModeId;
       double amountOld = transFromDB.Amount;
       double amountNew = trans.Amount;
       int? bankAccountNew = trans.BankAccountId;
@@ -152,7 +152,7 @@ namespace SuperMarketApi.Controllers
       {
         trans.ChequeDate = FormatExt.GetDateTimeSave(Convert.ToString(trans.ChequeDate), null);
         Cheque cheque = new Cheque(trans.ChequeNo,
-            trans.Amount, trans.ChequeDate, trans.TransactionId);
+            trans.Amount, (DateTime)trans.ChequeDate, trans.TransactionId);
         cheque.CompanyId = companyId;
         db.Cheques.Add(cheque);
       }
@@ -165,7 +165,7 @@ namespace SuperMarketApi.Controllers
       {
         Cheque cheque = db.Cheques.Where(c => c.IssuedTrxId == trans.TransactionId && c.CompanyId == companyId).FirstOrDefault();
         cheque.Amount = trans.Amount;
-        cheque.ChequeDate = trans.ChequeDate;
+        cheque.ChequeDate = (DateTime)trans.ChequeDate;
         cheque.ChequeNo = trans.ChequeNo;
       }
       if (IsBankTrans(transModeNew))
@@ -259,10 +259,10 @@ namespace SuperMarketApi.Controllers
     public static void DeleteTrans(POSDbContext db, Transaction trans, int companyId)
     {
 
-      int transMode = trans.TransModeId;
+      int transMode = (int)trans.TransModeId;
       double amount = trans.Amount;
       bool? isIncoming = trans.IsIncoming;
-      if (IsBankTrans(trans.TransModeId))
+      if (IsBankTrans((int)trans.TransModeId))
       {
         BankAccount bankAccount = trans.BankAccount;
         if (isIncoming == true)
@@ -341,7 +341,7 @@ namespace SuperMarketApi.Controllers
       var TransModeId = new SelectList(
           transModes, "TransModeId", "Description", trans.TransModeId);
 
-      SetBankList( db, trans.TransModeId, trans.BankAccountId, companyId);
+      SetBankList( db, (int)trans.TransModeId, trans.BankAccountId, companyId);
       if (trans.TransModeId == 3)
       {
         Cheque cheque = db.Cheques.Where(c => c.IssuedTrxId == trans.TransactionId).FirstOrDefault();

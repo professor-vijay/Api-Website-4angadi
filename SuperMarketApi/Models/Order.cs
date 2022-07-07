@@ -143,11 +143,13 @@ namespace SuperMarketApi.Models
         public virtual Contact SuppliedBy { get; set; }
 
         [ForeignKey("OrderedBy")]
-        public int OrderedById { get; set; }
+        public int? OrderedById { get; set; }
         public virtual Contact OrderedBy { get; set; }
 
         [NotMapped]
         public virtual List<OrderItem> OrderItems { get; set; }
+        [NotMapped]
+        public virtual List<Lazy<OrderItem>> Items { get; set; }
 
         [NotMapped]
         public virtual List<OrderItemDetail> OrderItemDetails { get; set; }

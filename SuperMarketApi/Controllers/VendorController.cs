@@ -42,7 +42,7 @@ namespace SuperMarketApi.Controllers
                 db.SaveChanges();
                 Vendor vendor = new Vendor();
                 vendor = data.ToObject<Vendor>();
-                vendor.Id = contact.Id;
+                vendor.Id = (int)contact.Id;
                 db.Vendors.Add(vendor);
                 db.SaveChanges();
                 var response = new

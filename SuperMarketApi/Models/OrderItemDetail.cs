@@ -62,6 +62,10 @@ namespace SuperMarketApi.Models
         public int? BatchId { get; set; }
         public virtual Batch Batch { get; set; }
 
+        [ForeignKey("StockBatch")]
+        public int? StockBatchId { get; set; }
+        public virtual StockBatch StockBatch { get; set; }
+
         [ForeignKey("Bill")]
         public int? BillId { get; set; }
         public virtual Bill Bill { get; set; }

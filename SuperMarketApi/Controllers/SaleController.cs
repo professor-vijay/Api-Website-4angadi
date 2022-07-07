@@ -227,12 +227,6 @@ namespace SuperMarketApi.Controllers
                 int status = 200;
                 dynamic orderjsonformat = JsonConvert.DeserializeObject(payload.OrderJson);
                 dynamic DataAllocation = new { };
-                //string phoneno = orderjsonformat.CustomerDetails.PhoneNo.ToString();
-                //int customerid = -1;
-                //if (phoneno != "" && phoneno != null)
-                //{
-                //    customerid = db.Customers.Where(x => x.PhoneNo == phoneno).Any() ? db.Customers.Where(x => x.PhoneNo == phoneno).FirstOrDefault().Id : 0;
-                //}
                 using (SqlConnection myconnn = new SqlConnection(Configuration.GetConnectionString("myconn")))
                 {
                     myconnn.Open();
@@ -244,8 +238,6 @@ namespace SuperMarketApi.Controllers
                         DataSet ds = new DataSet();
                         SqlDataAdapter sqladapter = new SqlDataAdapter(ordersp);
                         sqladapter.Fill(ds);
-                        //DataTable Table = ds.Tables[0];
-                        //DataAllocation = Table;
                         myconnn.Close();
                     }
                     catch (Exception e)

@@ -141,6 +141,50 @@ namespace SuperMarketApi.Controllers
                 return Json(error);
             }
         }
+
+        [HttpPost("saveTransaction")]
+        public IActionResult saveTransaction([FromBody] dynamic data)
+        {
+            try
+            {
+                int? orderid = 0;
+                Transaction oldTransaction = new Transaction();
+                double difference = 0;
+                data.PaymentType = null;
+                Transaction transaction = data.ToObject<Transaction>();
+                oldTransaction = db.Transactions.Where(x => x.TransactionId == transaction.TransactionId).AsNoTracking().FirstOrDefault();
+                orderid = transaction.OrderId;
+                db.Entry(transaction).State = EntityState.Modified;
+                difference = oldTransaction.Amount - transaction.Amount;
+                if (orderid != null && orderid > 0 && difference != 0)
+                {
+                    Order order = db.Orders.Find(orderid);
+                    order.PaidAmount = order.PaidAmount - difference;
+                    dynamic payload = JsonConvert.DeserializeObject(order.OrderJson);
+                    payload.PaidAmount = order.PaidAmount;
+                    order.OrderJson = JsonConvert.SerializeObject(payload);
+                    db.Entry(transaction).State = EntityState.Modified;
+                    db.SaveChanges();
+                }
+                db.SaveChanges();
+                var response = new
+                {
+                    status = 200,
+                    message = "Success"
+                };
+                return Json(response);
+            }
+            catch (Exception e)
+            {
+                var error = new
+                {
+                    error = new Exception(e.Message, e.InnerException),
+                    status = 0,
+                    msg = "Something went wrong  Contact our service provider"
+                };
+                return Json(error);
+            }
+        }
         // GET: ReceiptController
         public ActionResult Index()
         {
